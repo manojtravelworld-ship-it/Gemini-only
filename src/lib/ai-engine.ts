@@ -374,7 +374,7 @@ export class HybridAIEngine {
 
     try {
       // Use Flash Lite for voice tasks to minimize latency
-      const modelName = task === 'voice' ? 'gemini-3.1-flash-lite-preview' : 'gemini-3-flash-preview';
+      const modelName = task === 'voice' ? 'gemini-2.5-flash' : 'gemini-2.5-flash';
       console.log(`Nexus AI: Using Cloud Failover (${modelName})...`);
       const contents: any[] = history.map(m => ({
         role: m.role === 'assistant' ? 'model' : 'user',
@@ -458,7 +458,7 @@ export class HybridAIEngine {
 
       if (effectiveTask === 'drafting') {
         const result = await this.ai.models.generateContent({
-          model: 'gemini-3-flash-preview',
+          model: 'gemini-2.5-flash',
           contents: [
             ...history.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
             { role: 'user', parts: [{ text: prompt }] }
@@ -474,7 +474,7 @@ export class HybridAIEngine {
       }
 
       // 3. Voice/General Task -> Gemini API
-      const modelName = task === 'voice' ? 'gemini-3.1-flash-lite-preview' : 'gemini-3-flash-preview';
+      const modelName = task === 'voice' ? 'gemini-2.5-flash' : 'gemini-2.5-flash';
       
       const contents: any[] = history.map(m => ({
         role: m.role === 'assistant' ? 'model' : 'user',
@@ -513,7 +513,7 @@ export class HybridAIEngine {
   private async orchestrate(prompt: string): Promise<AITaskType> {
     try {
       const response = await this.ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-2.5-flash',
         contents: [{ 
           role: 'user', 
           parts: [{ 
@@ -551,7 +551,7 @@ export class HybridAIEngine {
       contents.push({ role: 'user', parts: [{ text: prompt }] });
 
       const response = await this.ai.models.generateContent({
-        model: 'gemini-3.1-flash-lite-preview',
+        model: 'gemini-2.5-flash',
         contents: contents,
         config: {
           tools: [{ googleSearch: {} }]
