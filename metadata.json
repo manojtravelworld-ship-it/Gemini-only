@@ -1,0 +1,8 @@
+{
+  "name": "Nexus Justice AI",
+  "description": "A cutting-edge legal AI assistant powered by Gemini 2.5 Flash and Chrome Built-in AI, featuring local Malayalam neural modules, high-precision drafting, and secure offline-capable voice intelligence.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
