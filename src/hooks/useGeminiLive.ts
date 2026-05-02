@@ -59,7 +59,7 @@ export function useGeminiLive() {
       audioContextRef.current = createAudioContext();
       
       const session = await ai.live.connect({
-        model: "gemini-3.1-flash-live-preview",
+        model: "gemini-2.5-flash",
         config: {
           responseModalities: [Modality.AUDIO],
           speechConfig: {
