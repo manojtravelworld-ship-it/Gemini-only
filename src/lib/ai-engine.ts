@@ -1,4 +1,4 @@
-import { GoogleGenAI, ThinkingLevel } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { LlmInference, FilesetResolver } from '@mediapipe/tasks-genai';
 
 export interface AIMessage {
@@ -374,7 +374,7 @@ export class HybridAIEngine {
 
     try {
       // Use Flash Lite for voice tasks to minimize latency
-      const modelName = task === 'voice' ? 'gemini-2.5-flash' : 'gemini-2.5-flash';
+      const modelName = task === 'voice' ? 'gemini-3.1-flash-lite-preview' : 'gemini-3-flash-preview';
       console.log(`Nexus AI: Using Cloud Failover (${modelName})...`);
       const contents: any[] = history.map(m => ({
         role: m.role === 'assistant' ? 'model' : 'user',
@@ -386,8 +386,7 @@ export class HybridAIEngine {
         model: modelName,
         contents: contents,
         config: {
-          systemInstruction: "You are Nexus Justice, a professional legal voice assistant. You are currently speaking to the user via voice. Keep your responses EXTREMELY concise, formal, and helpful. Answer directly without unnecessary preamble. Maintain context from previous turns in the conversation. If the user speaks to you in Malayalam (or any other language), you MUST respond in that same language. Do not mention that you are a text-based AI or that you cannot hear sound, as you are integrated into a voice-capable system. Your goal is to be a seamless extension of the advocate's workflow. \n\nCRITICAL CONVERSATIONAL RULES:\n1. Never just stop after answering a question. \n2. Always encourage the user to ask more or talk more. \n3. Identify the most complex or 'toughest' part of your current answer and proactively ask the user if they want to know more about that specific detail (e.g., 'Do you want to know more about [specific topic]?').\n4. End your response with an open-ended question like 'Do you have anything else to know?' or 'Is there anything else I can assist you with?'",
-          thinkingConfig: { thinkingLevel: task === 'voice' ? ThinkingLevel.MINIMAL : ThinkingLevel.LOW }
+          systemInstruction: "You are Nexus Justice, a professional legal voice assistant. You are currently speaking to the user via voice. Keep your responses EXTREMELY concise, formal, and helpful. Answer directly without unnecessary preamble. Maintain context from previous turns in the conversation. If the user speaks to you in Malayalam (or any other language), you MUST respond in that same language. Do not mention that you are a text-based AI or that you cannot hear sound, as you are integrated into a voice-capable system. Your goal is to be a seamless extension of the advocate's workflow. \n\nCRITICAL CONVERSATIONAL RULES:\n1. Never just stop after answering a question. \n2. Always encourage the user to ask more or talk more. \n3. Identify the most complex or 'toughest' part of your current answer and proactively ask the user if they want to know more about that specific detail (e.g., 'Do you want to know more about [specific topic]?').\n4. End your response with an open-ended question like 'Do you have anything else to know?' or 'Is there anything else I can assist you with?'"
         }
       });
 
@@ -458,7 +457,7 @@ export class HybridAIEngine {
 
       if (effectiveTask === 'drafting') {
         const result = await this.ai.models.generateContent({
-          model: 'gemini-2.5-flash',
+          model: 'gemini-3-flash-preview',
           contents: [
             ...history.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
             { role: 'user', parts: [{ text: prompt }] }
@@ -474,7 +473,7 @@ export class HybridAIEngine {
       }
 
       // 3. Voice/General Task -> Gemini API
-      const modelName = task === 'voice' ? 'gemini-2.5-flash' : 'gemini-2.5-flash';
+      const modelName = task === 'voice' ? 'gemini-3.1-flash-lite-preview' : 'gemini-3-flash-preview';
       
       const contents: any[] = history.map(m => ({
         role: m.role === 'assistant' ? 'model' : 'user',
@@ -497,8 +496,7 @@ export class HybridAIEngine {
         model: modelName,
         contents: contents,
         config: {
-          systemInstruction: "You are Nexus Justice, a professional legal voice assistant. You are currently speaking to the user via voice. Keep your responses EXTREMELY concise, formal, and helpful. Answer directly without unnecessary preamble. Maintain context from previous turns in the conversation. If the user speaks to you in Malayalam (or any other language), you MUST respond in that same language. Do not mention that you are a text-based AI or that you cannot hear sound, as you are integrated into a voice-capable system. Your goal is to be a seamless extension of the advocate's workflow. \n\nCRITICAL CONVERSATIONAL RULES:\n1. Never just stop after answering a question. \n2. Always encourage the user to ask more or talk more. \n3. Identify the most complex or 'toughest' part of your current answer and proactively ask the user if they want to know more about that specific detail (e.g., 'Do you want to know more about [specific topic]?').\n4. End your response with an open-ended question like 'Do you have anything else to know?' or 'Is there anything else I can assist you with?'",
-          thinkingConfig: { thinkingLevel: task === 'voice' ? ThinkingLevel.MINIMAL : ThinkingLevel.LOW }
+          systemInstruction: "You are Nexus Justice, a professional legal voice assistant. You are currently speaking to the user via voice. Keep your responses EXTREMELY concise, formal, and helpful. Answer directly without unnecessary preamble. Maintain context from previous turns in the conversation. If the user speaks to you in Malayalam (or any other language), you MUST respond in that same language. Do not mention that you are a text-based AI or that you cannot hear sound, as you are integrated into a voice-capable system. Your goal is to be a seamless extension of the advocate's workflow. \n\nCRITICAL CONVERSATIONAL RULES:\n1. Never just stop after answering a question. \n2. Always encourage the user to ask more or talk more. \n3. Identify the most complex or 'toughest' part of your current answer and proactively ask the user if they want to know more about that specific detail (e.g., 'Do you want to know more about [specific topic]?').\n4. End your response with an open-ended question like 'Do you have anything else to know?' or 'Is there anything else I can assist you with?'"
         }
       });
 
@@ -513,7 +511,7 @@ export class HybridAIEngine {
   private async orchestrate(prompt: string): Promise<AITaskType> {
     try {
       const response = await this.ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3-flash-preview',
         contents: [{ 
           role: 'user', 
           parts: [{ 
@@ -526,10 +524,7 @@ export class HybridAIEngine {
             
             User Request: "${prompt}"` 
           }] 
-        }],
-        config: {
-          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW }
-        }
+        }]
       });
       
       const decision = response.text?.toLowerCase().trim() || 'voice';
@@ -551,7 +546,7 @@ export class HybridAIEngine {
       contents.push({ role: 'user', parts: [{ text: prompt }] });
 
       const response = await this.ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.1-flash-lite-preview',
         contents: contents,
         config: {
           tools: [{ googleSearch: {} }]

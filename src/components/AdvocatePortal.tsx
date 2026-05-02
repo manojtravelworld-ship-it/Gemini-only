@@ -219,13 +219,13 @@ export default function AdvocatePortal({ onBack }: { onBack: () => void }) {
   const [voiceLang, setVoiceLang] = useState<'en-US' | 'ml-IN'>('en-US');
   const [voiceAiTranscript, setVoiceAiTranscript] = useState("");
   const [voiceAiReply, setVoiceAiReply] = useState("");
-  const [voiceAiStatus, setVoiceAiStatus] = useState<'idle' | 'listening' | 'thinking' | 'speaking' | string>('idle');
+  const [voiceAiStatus, setVoiceAiStatus] = useState<'idle' | 'listening' | 'processing' | 'speaking' | string>('idle');
   const [voiceHistory, setVoiceHistory] = useState<AIMessage[]>([]);
   const [micLevel, setMicLevel] = useState(0);
   const [localSTTActive, setLocalSTTActive] = useState(false);
   const [showSTTAdvice, setShowSTTAdvice] = useState(false);
   const voiceAiOnRef = useRef(false);
-  const voiceAiStatusRef = useRef<'idle' | 'listening' | 'thinking' | 'speaking' | string>('idle');
+  const voiceAiStatusRef = useRef<'idle' | 'listening' | 'processing' | 'speaking' | string>('idle');
   const isInitializingRef = useRef(false);
 
   // Sync refs with state
@@ -691,7 +691,7 @@ export default function AdvocatePortal({ onBack }: { onBack: () => void }) {
       // Use 4s chunks for local STT responsiveness
       const audio = await MalayalamEngine.getInstance().recordAudio(4000);
       if (audio && voiceAiOnRef.current) {
-        setVoiceAiStatus('thinking');
+        setVoiceAiStatus('processing');
         const langCode = voiceLang === 'ml-IN' ? 'malayalam' : 'english';
         const text = await MalayalamEngine.getInstance().transcribe(audio, langCode);
         
@@ -780,7 +780,7 @@ export default function AdvocatePortal({ onBack }: { onBack: () => void }) {
     };
 
     recognition.onspeechstart = () => {
-      if (voiceAiStatusRef.current === 'speaking' || voiceAiStatusRef.current === 'thinking') {
+      if (voiceAiStatusRef.current === 'speaking' || voiceAiStatusRef.current === 'processing') {
         window.speechSynthesis.cancel();
         sentenceQueueRef.current = [];
         isSpeakingQueueRef.current = false;
@@ -794,7 +794,7 @@ export default function AdvocatePortal({ onBack }: { onBack: () => void }) {
     };
 
     recognition.onresult = (event: any) => {
-      if (voiceAiStatusRef.current === 'speaking' || voiceAiStatusRef.current === 'thinking') {
+      if (voiceAiStatusRef.current === 'speaking' || voiceAiStatusRef.current === 'processing') {
         window.speechSynthesis.cancel();
         sentenceQueueRef.current = [];
         isSpeakingQueueRef.current = false;
@@ -844,7 +844,7 @@ export default function AdvocatePortal({ onBack }: { onBack: () => void }) {
       } else if (event.error === 'network') {
         if (malayalamStatus.sttReady) {
           setLocalSTTActive(true);
-          setVoiceAiStatus('thinking');
+          setVoiceAiStatus('processing');
           setTimeout(() => { if (voiceAiOnRef.current) startLocalSTT(); }, 1000);
         } else {
           setVoiceAiOn(false);
@@ -1014,7 +1014,7 @@ export default function AdvocatePortal({ onBack }: { onBack: () => void }) {
       return;
     }
     
-    // Stop recognition while AI is thinking/speaking to avoid echo
+    // Stop recognition while AI is processing/speaking to avoid echo
     if (recognitionRef.current) {
       try { recognitionRef.current.stop(); } catch(e) {}
     }
@@ -1033,8 +1033,8 @@ export default function AdvocatePortal({ onBack }: { onBack: () => void }) {
       return;
     }
 
-    setVoiceAiStatus('thinking');
-    setVoiceAiReply("Thinking...");
+    setVoiceAiStatus('processing');
+    setVoiceAiReply("Processing...");
     
     // Automatically switch to Consult view as soon as a question is asked
     setView('consult');
@@ -1048,7 +1048,7 @@ export default function AdvocatePortal({ onBack }: { onBack: () => void }) {
     // Watchdog for AI response
     if (watchdogTimerRef.current) clearTimeout(watchdogTimerRef.current);
     watchdogTimerRef.current = setTimeout(() => {
-      if (voiceAiStatusRef.current === 'thinking') {
+      if (voiceAiStatusRef.current === 'processing') {
         console.warn("AI response watchdog triggered");
         setVoiceAiReply("I'm sorry, I'm taking too long to think. Please try again.");
         setVoiceAiStatus('idle');
@@ -2978,12 +2978,12 @@ ${response.text}`;
                 <div className="flex items-center gap-3">
                   <div className={`w-2 h-2 rounded-full animate-pulse ${
                     voiceAiStatus === 'listening' ? 'bg-red-500' : 
-                    voiceAiStatus === 'thinking' ? 'bg-amber-500' : 
+                    voiceAiStatus === 'processing' ? 'bg-amber-500' : 
                     voiceAiStatus === 'speaking' || voiceAiStatus.includes('Speaking') || voiceAiStatus.includes('Answering') ? 'bg-emerald-500' : 'bg-slate-500'
                   }`} />
                   <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
                     {voiceAiStatus === 'listening' ? 'Nexus Listening' : 
-                     voiceAiStatus === 'thinking' ? 'Nexus Thinking' : 
+                     voiceAiStatus === 'processing' ? 'Nexus Processing' : 
                      voiceAiStatus.includes('Answering') || voiceAiStatus.includes('Speaking') ? voiceAiStatus : 'Nexus Ready'}
                     {localSTTActive && (
                       <span className="px-1.5 py-0.5 bg-indigo-500/20 text-indigo-400 rounded-md text-[8px] border border-indigo-500/30">LOCAL BRAIN</span>
@@ -3044,7 +3044,7 @@ ${response.text}`;
                   <VoiceVisualizer 
                     volume={micLevel / 128} 
                     isModelSpeaking={voiceAiStatus === 'speaking' || voiceAiStatus.includes('Answering')} 
-                    isThinking={voiceAiStatus === 'thinking'}
+                    isProcessing={voiceAiStatus === 'processing'}
                     isConnected={voiceAiOn} 
                   />
                   <div className="text-sm font-medium text-white italic text-center w-full">
